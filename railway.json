@@ -5,7 +5,7 @@
   },
   "deploy": {
     "preDeployCommand": "bundle exec rails db:prepare",
-    "startCommand": "bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}",
+    "startCommand": "/bin/bash -c \"exec bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}\"",
     "healthcheckPath": "/up",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
