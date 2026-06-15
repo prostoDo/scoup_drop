@@ -1,0 +1,39 @@
+done:
+  youtrack_id: issue-1
+  key: SD-1
+  summary: Finished work
+  url: https://youtrack.example/issue/SD-1
+  assignee_name: Ivan
+  status: Done
+  estimation_be: 5
+  has_estimation: true
+
+remaining:
+  youtrack_id: issue-2
+  key: SD-2
+  summary: Remaining work
+  url: https://youtrack.example/issue/SD-2
+  assignee_name: Ivan
+  status: In Progress
+  estimation_be: 3.5
+  has_estimation: true
+
+added:
+  youtrack_id: issue-3
+  key: SD-3
+  summary: Added work
+  url: https://youtrack.example/issue/SD-3
+  assignee_name: Olga
+  status: Open
+  estimation_be: 2
+  has_estimation: true
+
+unestimated:
+  youtrack_id: issue-4
+  key: SD-4
+  summary: Unknown size
+  url: https://youtrack.example/issue/SD-4
+  assignee_name:
+  status: Open
+  estimation_be:
+  has_estimation: false

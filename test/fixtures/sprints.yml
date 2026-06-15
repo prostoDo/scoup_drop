@@ -1,0 +1,8 @@
+current:
+  youtrack_id: sprint-1
+  name: Sprint 1
+  start_date: 2026-06-01
+  end_date: 2026-06-30
+  archived: false
+  initial_scope_captured_at: 2026-06-01 09:00:00
+  initial_scope_source: sprint_start

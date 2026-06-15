@@ -1,0 +1,15 @@
+current:
+  sprint: current
+  snapshot_date: 2026-06-01
+  planned_sp: 8.5
+  completed_sp: 5
+  added_sp: 2
+  dropped_sp: 3.5
+  remaining_sp: 5.5
+  completion_rate: 58.82
+  scope_drop_rate: 41.18
+  added_scope_rate: 23.53
+  scope_change_rate: 64.71
+  scope_stability_index: 35.29
+  issues_count: 4
+  without_estimation_count: 1

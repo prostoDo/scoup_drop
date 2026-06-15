@@ -1,0 +1,35 @@
+done:
+  sprint: current
+  issue: done
+  is_initial_scope: true
+  is_added_after_start: false
+  is_removed_from_sprint: false
+  currently_in_sprint: true
+  added_to_sprint_at: 2026-06-01 09:00:00
+
+remaining:
+  sprint: current
+  issue: remaining
+  is_initial_scope: true
+  is_added_after_start: false
+  is_removed_from_sprint: false
+  currently_in_sprint: true
+  added_to_sprint_at: 2026-06-01 09:00:00
+
+added:
+  sprint: current
+  issue: added
+  is_initial_scope: false
+  is_added_after_start: true
+  is_removed_from_sprint: false
+  currently_in_sprint: true
+  added_to_sprint_at: 2026-06-03 09:00:00
+
+unestimated:
+  sprint: current
+  issue: unestimated
+  is_initial_scope: true
+  is_added_after_start: false
+  is_removed_from_sprint: false
+  currently_in_sprint: true
+  added_to_sprint_at: 2026-06-01 09:00:00
