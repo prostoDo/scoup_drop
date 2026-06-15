@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+require "rbconfig"
+require "rubygems"
+
+APP_ROOT = File.expand_path("..", __dir__)
+
+def configure_ruby_path
+  ruby_bin = RbConfig::CONFIG.fetch("bindir")
+  gem_bin = Gem.bindir
+  ENV["PATH"] = [ ruby_bin, gem_bin, ENV["PATH"] ].compact.join(File::PATH_SEPARATOR)
+end
+
+def load_env_file(path)
+  File.readlines(path, chomp: true).each do |line|
+    line = line.strip
+    next if line.empty? || line.start_with?("#")
+    next unless line.include?("=")
+
+    key, value = line.split("=", 2)
+    key = key.strip
+    value = value.strip
+    value = value[1...-1] if value.start_with?('"') && value.end_with?('"')
+    value = value[1...-1] if value.start_with?("'") && value.end_with?("'")
+    ENV[key] = value
+  end
+end
+
+FileUtils.chdir(APP_ROOT) do
+  abort "Missing .env. Run cp .env.example .env and fill YouTrack values first." unless File.exist?(".env")
+
+  configure_ruby_path
+  load_env_file(".env")
+
+  exec "bundle", "exec", "rake", "scope_drop:daily_snapshot"
+end

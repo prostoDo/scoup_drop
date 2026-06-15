@@ -1,0 +1,134 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+require "rbconfig"
+require "rubygems"
+
+APP_ROOT = File.expand_path("..", __dir__)
+CONTAINER_NAME = "scope-drop-postgres"
+DATABASE_URL = "postgresql://postgres@127.0.0.1:5432/scope_drop_development"
+
+def system!(*args)
+  system(*args, exception: true)
+end
+
+def configure_ruby_path
+  ruby_bin = RbConfig::CONFIG.fetch("bindir")
+  gem_bin = Gem.bindir
+  ENV["PATH"] = [ ruby_bin, gem_bin, ENV["PATH"] ].compact.join(File::PATH_SEPARATOR)
+end
+
+def load_env_file(path)
+  File.readlines(path, chomp: true).each do |line|
+    line = line.strip
+    next if line.empty? || line.start_with?("#")
+    next unless line.include?("=")
+
+    key, value = line.split("=", 2)
+    key = key.strip
+    value = value.strip
+    value = value[1...-1] if value.start_with?('"') && value.end_with?('"')
+    value = value[1...-1] if value.start_with?("'") && value.end_with?("'")
+    ENV[key] = value
+  end
+end
+
+def capture(*args)
+  IO.popen(args, &:read).to_s
+end
+
+def docker_available?
+  system("docker", "info", out: File::NULL, err: File::NULL)
+end
+
+def container_exists?
+  capture("docker", "ps", "-a", "--filter", "name=^/#{CONTAINER_NAME}$", "--format", "{{.Names}}")
+    .lines
+    .map(&:strip)
+    .include?(CONTAINER_NAME)
+end
+
+def container_running?
+  capture("docker", "ps", "--filter", "name=^/#{CONTAINER_NAME}$", "--format", "{{.Names}}")
+    .lines
+    .map(&:strip)
+    .include?(CONTAINER_NAME)
+end
+
+def wait_for_postgres
+  30.times do
+    return if system(
+      "docker", "exec", CONTAINER_NAME, "pg_isready", "-U", "postgres",
+      out: File::NULL,
+      err: File::NULL
+    )
+
+    sleep 1
+  end
+
+  abort "PostgreSQL did not become ready in 30 seconds"
+end
+
+FileUtils.chdir(APP_ROOT) do
+  configure_ruby_path
+
+  abort "Docker is not available. Start Docker Desktop and run bin/local-start again." unless docker_available?
+  abort "Missing .env. Run cp .env.example .env and fill YouTrack values first." unless File.exist?(".env")
+  load_env_file(".env")
+
+  if container_running?
+    puts "== PostgreSQL container is already running =="
+  elsif container_exists?
+    puts "== Starting existing PostgreSQL container =="
+    system! "docker", "start", CONTAINER_NAME
+  else
+    puts "== Creating PostgreSQL container =="
+    system! "docker", "run",
+      "--name", CONTAINER_NAME,
+      "-e", "POSTGRES_HOST_AUTH_METHOD=trust",
+      "-e", "POSTGRES_DB=scope_drop_development",
+      "-p", "5432:5432",
+      "-d", "postgres:16-alpine"
+  end
+
+  wait_for_postgres
+
+  puts "\n== Installing Ruby dependencies =="
+  system("bundle", "check") || system!("bundle", "install")
+
+  puts "\n== Installing frontend dependencies =="
+  FileUtils.chdir("frontend") do
+    system! "npm", "install" unless Dir.exist?("node_modules")
+  end
+
+  puts "\n== Preparing database =="
+  ENV["DATABASE_URL"] ||= DATABASE_URL
+  ENV["RAILS_ENV"] ||= "development"
+  system! "bin/rails", "db:prepare"
+
+  puts <<~TEXT
+
+    Local VPN environment is ready.
+
+    1. Connect corporate VPN.
+    2. Start Rails:
+
+       cd "#{APP_ROOT}"
+       set -a; source .env; set +a
+       bin/rails server
+
+    3. Start frontend in another terminal:
+
+       cd "#{APP_ROOT}/frontend"
+       npm run dev
+
+    4. Open:
+
+       http://127.0.0.1:5173/app/
+
+    Daily local snapshot command:
+
+       cd "#{APP_ROOT}"
+       bin/local-snapshot
+  TEXT
+end
